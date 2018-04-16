@@ -104,7 +104,7 @@ int main() {
           // transform waypoints to be from car's perspective
           // this means we can consider px = 0, py = 0, and psi = 0
           // greatly simplifying future calculations
-          for (int i = 0; i < ptsx.size(); i++) {
+          for (size_t i = 0; i < ptsx.size(); i++) {
             double dx = ptsx[i] - px;
             double dy = ptsy[i] - py;
             waypoints_x.push_back(dx * cos(-psi) - dy * sin(-psi));
@@ -116,15 +116,16 @@ int main() {
           Eigen::Map<Eigen::VectorXd> waypoints_x_eig(ptrx, 6);
           Eigen::Map<Eigen::VectorXd> waypoints_y_eig(ptry, 6);
 
-          auto coeffs = polyfit(waypoints_x_eig, waypoints_y_eig, 3);
-          double cte = polyeval(coeffs, 0);  // px = 0, py = 0
-          double epsi = -atan(coeffs[1]);  // p
+          auto coeffs = polyfit(waypoints_x_eig, waypoints_y_eig, 4);
+          double cte = polyeval(coeffs, 0);  // crosstrack error
+          double epsi = -atan(coeffs[1]);    // heading error
 
           double steer_value ;
           double throttle_value;
 
           Eigen::VectorXd state(6);
           state << 0, 0, 0, v, cte, epsi;
+
           auto vars = mpc.Solve(state, coeffs);
           steer_value = vars[0];
           throttle_value = vars[1];
@@ -143,7 +144,7 @@ int main() {
           //.. add (x,y) points to list here, points are in reference to the vehicle's coordinate system
           // the points in the simulator are connected by a Green line
 
-          for (int i = 2; i < vars.size(); i ++) {
+          for (size_t i = 2; i < vars.size(); i ++) {
 		    if (i%2 == 0) {
 		      mpc_x_vals.push_back(vars[i]);
 		    }
@@ -163,7 +164,7 @@ int main() {
           // the points in the simulator are connected by a Yellow line
 
 
-          for (double i = 0; i < 100; i += 5){
+          for (double i = 0; i < 100; i+=5){
             next_x_vals.push_back(i);
             next_y_vals.push_back(polyeval(coeffs, i));
           }

@@ -6,7 +6,7 @@
 using CppAD::AD;
 
 // Set the timestep length and duration
-size_t N = 20;
+int N = 15;
 double dt = 0.1;
 
 // This value assumes the model presented in the classroom is used.
@@ -21,8 +21,8 @@ double dt = 0.1;
 // This is the length from front to CoG that has a similar radius.
 const double Lf = 2.67;
 
-double ref_v = 15;
-size_t x_start = 0;
+double ref_v = 20;
+size_t x_start =0;
 size_t y_start = x_start + N;
 size_t psi_start = y_start + N;
 size_t v_start = psi_start + N;
@@ -50,19 +50,19 @@ class FG_eval {
     	// Any additions to the cost should be added to `fg[0]`.
 	fg[0]=0;
 	
-	 // Reference State Cost
+	// Reference State Cost
 	for (int i=0;i<N;i++){
 		fg[0]+=CppAD::pow(vars[cte_start+i],2);
 		fg[0]+=CppAD::pow(vars[epsi_start+i],2);
 		fg[0]+=CppAD::pow(vars[v_start+i]-ref_v,2);
 	}
 	for (int i=0;i<N-1;i++){
-		fg[0] += CppAD::pow(vars[delta_start + i], 2);
-      		fg[0] += 10*CppAD::pow(vars[a_start + i], 2);
+		fg[0] += 100*CppAD::pow(vars[delta_start + i], 2);
+      		fg[0] += 100*CppAD::pow(vars[a_start + i], 2);
 	}
 	for (int i=0;i<N-2;i++){
-		fg[0] += 600*CppAD::pow(vars[delta_start + i + 1] - vars[delta_start + i], 2);
-		fg[0] += 10*CppAD::pow(vars[a_start + i + 1] - vars[a_start + i], 2);
+		fg[0] += 3000*CppAD::pow(vars[delta_start + i + 1] - vars[delta_start + i], 2);
+		fg[0] += 100*CppAD::pow(vars[a_start + i + 1] - vars[a_start + i], 2);
 	}
 	
 	// Initialization
@@ -94,7 +94,8 @@ class FG_eval {
 	  // Only consider the actuation at time t.
 	  AD<double> delta0 = vars[delta_start + t - 1];
 	  AD<double> a0 = vars[a_start + t - 1];
-	  if (t > 1) {   // use previous actuations (to account for latency)
+	  // use previous actuations (to account for 100msec latency)
+	  if (t > 1) {   
 		a0 = vars[a_start + t - 2];
 		delta0 = vars[delta_start + t - 2];
 	  }
@@ -152,7 +153,7 @@ vector<double> MPC::Solve(Eigen::VectorXd state, Eigen::VectorXd coeffs) {
   // Initial value of the independent variables.
   // SHOULD BE 0 besides initial state.
   Dvector vars(n_vars);
-  for (int i = 0; i < n_vars; i++) {
+  for (i = 0; i < n_vars; i++) {
     vars[i] = 0;
   }
   // Set the initial variable values
@@ -168,7 +169,7 @@ vector<double> MPC::Solve(Eigen::VectorXd state, Eigen::VectorXd coeffs) {
   // Set lower and upper limits for variables.
   // Set all non-actuators upper and lowerlimits
   // to the max negative and positive values.
-  for (int i = 0; i < delta_start; i++) {
+  for (i = 0; i < delta_start; i++) {
     vars_lowerbound[i] = -1.0e19;
     vars_upperbound[i] = 1.0e19;
   }
@@ -176,14 +177,14 @@ vector<double> MPC::Solve(Eigen::VectorXd state, Eigen::VectorXd coeffs) {
   // The upper and lower limits of delta are set to -25 and 25
   // degrees (values in radians).
   // NOTE: Feel free to change this to something else.
-  for (int i = delta_start; i < a_start; i++) {
+  for (i = delta_start; i < a_start; i++) {
     vars_lowerbound[i] = -0.436332;
     vars_upperbound[i] = 0.436332;
   }
 
   // Acceleration/decceleration upper and lower limits.
   // NOTE: Feel free to change this to something else.
-  for (int i = a_start; i < n_vars; i++) {
+  for (i = a_start; i < n_vars; i++) {
     vars_lowerbound[i] = -1.0;
     vars_upperbound[i] = 1.0;
   }
@@ -192,7 +193,7 @@ vector<double> MPC::Solve(Eigen::VectorXd state, Eigen::VectorXd coeffs) {
   // Should be 0 besides initial state.
   Dvector constraints_lowerbound(n_constraints);
   Dvector constraints_upperbound(n_constraints);
-  for (int i = 0; i < n_constraints; i++) {
+  for (i = 0; i < n_constraints; i++) {
     constraints_lowerbound[i] = 0;
     constraints_upperbound[i] = 0;
   }
