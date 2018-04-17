@@ -21,7 +21,7 @@ double dt = 0.1;
 // This is the length from front to CoG that has a similar radius.
 const double Lf = 2.67;
 
-double ref_v = 20;
+double ref_v = 26;
 size_t x_start =0;
 size_t y_start = x_start + N;
 size_t psi_start = y_start + N;
@@ -61,7 +61,7 @@ class FG_eval {
       		fg[0] += 100*CppAD::pow(vars[a_start + i], 2);
 	}
 	for (int i=0;i<N-2;i++){
-		fg[0] += 3000*CppAD::pow(vars[delta_start + i + 1] - vars[delta_start + i], 2);
+		fg[0] += 150000*CppAD::pow(vars[delta_start + i + 1] - vars[delta_start + i], 2);
 		fg[0] += 100*CppAD::pow(vars[a_start + i + 1] - vars[a_start + i], 2);
 	}
 	
@@ -94,12 +94,13 @@ class FG_eval {
 	  // Only consider the actuation at time t.
 	  AD<double> delta0 = vars[delta_start + t - 1];
 	  AD<double> a0 = vars[a_start + t - 1];
+	  /**
 	  // use previous actuations (to account for 100msec latency)
 	  if (t > 1) {   
 		a0 = vars[a_start + t - 2];
 		delta0 = vars[delta_start + t - 2];
-	  }
-	  AD<double> f0 = coeffs[0] + coeffs[1] * x0;
+	  }**/
+	  AD<double> f0 = coeffs[0] + coeffs[1] * x0 + coeffs[2]*x0*x0 + coeffs[3]*x0*x0*x0;
 	  AD<double> psides0 = CppAD::atan(coeffs[1]);
 
 	  // Here's `x` to get you started.
@@ -137,12 +138,12 @@ vector<double> MPC::Solve(Eigen::VectorXd state, Eigen::VectorXd coeffs) {
   typedef CPPAD_TESTVECTOR(double) Dvector;
 
   
-  double x = state[0];
-  double y = state[1];
-  double psi = state[2];
-  double v = state[3];
-  double cte = state[4];
-  double epsi = state[5];
+  const double x = state[0];
+  const double y = state[1];
+  const double psi = state[2];
+  const double v = state[3];
+  const double cte = state[4];
+  const double epsi = state[5];
 
 
   // Set the number of model variables (includes both states and inputs).

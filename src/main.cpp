@@ -70,8 +70,10 @@ int main() {
 
   // MPC is initialized here!
   MPC mpc;
+  double pre_steer_value=0;
+  double pre_throttle_value=0;
 
-  h.onMessage([&mpc](uWS::WebSocket<uWS::SERVER> ws, char *data, size_t length,
+  h.onMessage([&mpc, pre_steer_value, pre_throttle_value](uWS::WebSocket<uWS::SERVER> ws, char *data, size_t length,
                      uWS::OpCode opCode) {
     // "42" at the start of the message means there's a websocket message event.
     // The 4 signifies a websocket message
@@ -90,7 +92,8 @@ int main() {
           double px = j[1]["x"];
           double py = j[1]["y"];
           double psi = j[1]["psi"];
-          double v = j[1]["speed"];
+          double v = j[1]["speed"]; 
+	  v=v*0.447;//convert speed from mph to m/s
 
           /*
           * Calculate steering angle and throttle using MPC.
@@ -116,16 +119,27 @@ int main() {
           Eigen::Map<Eigen::VectorXd> waypoints_x_eig(ptrx, 6);
           Eigen::Map<Eigen::VectorXd> waypoints_y_eig(ptry, 6);
 
-          auto coeffs = polyfit(waypoints_x_eig, waypoints_y_eig, 4);
-          double cte = polyeval(coeffs, 0);  // crosstrack error
+          auto coeffs = polyfit(waypoints_x_eig, waypoints_y_eig, 3);
+          //double cte = polyeval(coeffs, 0);  // crosstrack error
           double epsi = -atan(coeffs[1]);    // heading error
 
           double steer_value ;
           double throttle_value;
 
           Eigen::VectorXd state(6);
-          state << 0, 0, 0, v, cte, epsi;
 
+     	  double dt=0.1;
+	  double Lf=2.67;
+	  double x_init=0+v*cos(0)*dt;
+	  double y_init=0+v*sin(0)*dt;
+	  double psi_init=0+v*pre_steer_value/Lf*dt;
+	  double v_init=v+pre_throttle_value*dt;
+	  double cte_init=polyeval(coeffs, x_init)-y_init;
+	  double epsi_init=0-epsi+v*pre_steer_value/Lf*dt;
+
+          //state << 0, 0, 0, v, cte, epsi;
+	  state<<x_init,y_init,psi_init,v_init, cte_init, epsi_init;
+	  
           auto vars = mpc.Solve(state, coeffs);
           steer_value = vars[0];
           throttle_value = vars[1];
