@@ -21,7 +21,7 @@ double dt = 0.1;
 // This is the length from front to CoG that has a similar radius.
 const double Lf = 2.67;
 
-double ref_v = 26;
+double ref_v = 25;
 size_t x_start =0;
 size_t y_start = x_start + N;
 size_t psi_start = y_start + N;
@@ -61,7 +61,7 @@ class FG_eval {
       		fg[0] += 100*CppAD::pow(vars[a_start + i], 2);
 	}
 	for (int i=0;i<N-2;i++){
-		fg[0] += 150000*CppAD::pow(vars[delta_start + i + 1] - vars[delta_start + i], 2);
+		fg[0] += 95000*CppAD::pow(vars[delta_start + i + 1] - vars[delta_start + i], 2);
 		fg[0] += 100*CppAD::pow(vars[a_start + i + 1] - vars[a_start + i], 2);
 	}
 	
@@ -101,7 +101,7 @@ class FG_eval {
 		delta0 = vars[delta_start + t - 2];
 	  }**/
 	  AD<double> f0 = coeffs[0] + coeffs[1] * x0 + coeffs[2]*x0*x0 + coeffs[3]*x0*x0*x0;
-	  AD<double> psides0 = CppAD::atan(coeffs[1]);
+	  AD<double> psides0 = CppAD::atan(coeffs[1]+2*coeffs[2]*x0+3*coeffs[3]*x0*x0);
 
 	  // Here's `x` to get you started.
 	  // The idea here is to constraint this value to be 0.
